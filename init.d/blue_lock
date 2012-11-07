@@ -1,0 +1,110 @@
+#!/bin/bash
+
+### BEGIN INIT INFO
+
+# Provides:				blue_lock
+
+# Required-Start:		$local_fs $time
+
+# Required-Stop:		$local_fs $time
+
+# Default-Start:		2 3 4 5
+
+# Default-Stop:		0 1 6
+
+# Short-Description:	start blue_lock on boot
+
+# Description:			start, stop, etc blue_lock.pl daemon
+
+### END INIT INFO
+
+BIN='/usr/bin/blue_lock.pl'
+NAME=`basename $BIN .pl`
+PIDFILE="/var/run/$NAME.pid"
+
+getpid() {
+	if [ -e $PIDFILE ]; then
+		PID=`cat $PIDFILE`
+		if [ -e /proc/$PID ]; then
+			return 1
+		else
+			rm $PIDFILE
+		fi
+	fi
+	return 0
+}
+
+start() {
+	getpid
+	if [ $? -ne 0 ]; then
+		echo $NAME is already running [$PID]
+		exit
+	fi
+
+	echo -n "starting $NAME... "
+	$BIN
+
+	sleep 1
+	PID=`cat $PIDFILE`
+	echo [$PID]
+}
+
+stop() {
+	getpid
+	if [ $? -eq 0 ]; then
+		echo $NAME not running
+	else
+		echo -n "stoping $NAME... "
+
+		kill $PID && rm $PIDFILE && echo done
+	fi
+}
+
+status() {
+	getpid
+	if [ $? -eq 0 ]; then
+		echo $NAME is not running
+	else
+		echo $NAME is running [$PID]
+	fi
+}
+
+restart() {
+	echo "restarting $NAME..."
+	stop
+	sleep 2
+	start
+}
+
+signal() {
+	getpid
+	if [ $? -eq 0 ]; then
+		echo $NAME not running
+		exit
+	fi
+
+	kill -$1 $PID
+}
+
+case "$1" in
+	start)
+		start
+	;;
+	stop)
+		stop
+	;;
+	status)
+		status
+	;;
+	restart)
+		restart
+	;;
+	force-reload)
+		signal USR1
+	;;
+	*)
+		echo "Usage: $0 {start|stop|status|restart|force-reload}"
+	;;
+esac
+
+exit 0

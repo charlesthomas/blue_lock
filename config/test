@@ -1,0 +1,5 @@
+mac_address=94:63:D1:BE:08:D6
+username=crthomas
+logfile=/tmp/blue_lock.log
+timeout=5
+lockbin=/home/crthomas/git/charlesthomas/blue_lock/bin/screenlock.sh
